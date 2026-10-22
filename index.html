@@ -271,6 +271,7 @@
   .bouton-mini { border-radius: 999px; padding: 7px 14px; font-size: 12px; font-weight: 700;
                  background: var(--encre); color: var(--feuille); flex-shrink: 0; }
   .bouton-mini.calme { background: var(--creux); color: var(--doux); }
+  .etat.bientot { background: var(--ambre-voile); color: #8a5a00; }
 
   .bandeau-palier { border-radius: 18px; padding: 18px; margin-top: 14px; display: flex;
                     flex-wrap: wrap; align-items: center; gap: 14px; }
@@ -393,13 +394,17 @@ const SUITE = [
     ] },
   { num: 3, titre: '5 millions à l’infini', blocs: [
       { cover: 'p09.png', nom: 'La marque', lecons: 11, min: 69 },
-      { cover: 'p12.png', nom: 'Le cerveau IA', lecons: 8, min: 37 },
+      // Pas encore tourné : il figure au catalogue pour qu'on sache qu'il
+      // arrive, mais il ne compte pas dans ce qu'on promet aujourd'hui.
+      { cover: 'p12.png', nom: 'Le cerveau IA', lecons: 8, min: 37, bientot: true },
       { cover: 'p10.png', nom: 'Facebook à grande échelle', lecons: 3, min: 9 },
       { cover: 'p11.png', nom: 'Construire l’équipe', lecons: 1, min: 9 },
       { cover: 'p08.png', nom: 'L’état d’esprit du palier', lecons: 0, min: 0 },
     ] },
 ];
-const TOTAL23 = SUITE.flatMap((n) => n.blocs).reduce((a, b) => a + b.lecons, 0);
+const TOTAL23 = SUITE.flatMap((n) => n.blocs)
+  .filter((b) => !b.bientot)
+  .reduce((a, b) => a + b.lecons, 0);
 
 const MOYENS = ['Wave', 'Orange Money', 'MTN MoMo', 'Moov Money', 'Free Money', 'Carte bancaire'];
 const WHATSAPP = '+229 01 69 25 76 99';
@@ -614,6 +619,7 @@ function vueApres() {
 /* ── 3. Le catalogue, une fois dans la plateforme ────────────────────── */
 function tuile(b, palier, etat, prix) {
   const ferme = etat === 'ferme';
+  const bientot = Boolean(b.bientot);
   return `
   <article class="tuile p${palier} ${ferme ? 'ferme' : ''}">
     <div class="haut">
@@ -623,21 +629,24 @@ function tuile(b, palier, etat, prix) {
       </div>
       <div class="corps">
         <h4>${ech(b.nom)}</h4>
-        <p class="info">${b.lecons} leçons · ${temps(b.min)}</p>
+        <p class="info">${bientot ? 'En préparation' : `${b.lecons} leçons · ${temps(b.min)}`}</p>
       </div>
     </div>
     <div class="pied">
-      <span class="etat ${etat}">${
-        etat === 'a-toi' ? 'À toi'
+      <span class="etat ${bientot ? 'bientot' : etat}">${
+        bientot ? 'Bientôt'
+          : etat === 'a-toi' ? 'À toi'
           : prix ? fcfa(prix)
           // Les blocs des paliers 2 et 3 n'ont pas de prix à eux : ils ne se
           // vendent qu'ensemble. Un prix par bloc contredirait l'offre
           // groupée affichée juste en dessous.
           : `Dans le palier ${palier}`
       }</span>
-      <span class="bouton-mini ${ferme ? '' : 'calme'}">${ferme ? 'Débloquer' : 'Regarder'}</span>
+      <span class="bouton-mini ${ferme && !bientot ? '' : 'calme'}">${
+        bientot ? 'Pas encore' : ferme ? 'Débloquer' : 'Regarder'
+      }</span>
     </div>
-    ${(LECONS[b.cover] || []).length === 0 ? '' : `
+    ${bientot || (LECONS[b.cover] || []).length === 0 ? '' : `
     <details>
       <summary class="voir"><span>Voir les ${b.lecons} leçons</span>${CHEVRON}</summary>
       ${sommaire(b.cover, ferme)}
