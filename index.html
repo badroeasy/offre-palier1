@@ -1,0 +1,750 @@
+<title>L'offre EcomLiberty en test</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
+<style>
+  /* Trois écrans du même parcours : la page de vente d'une porte, l'écran qui
+     suit le paiement, le catalogue une fois dedans. Sol gris, feuille blanche,
+     un pastel par palier, l'encre pour tout ce qui agit. */
+  :root {
+    --sol: #ecedf1;
+    --feuille: #ffffff;
+    --creux: #f7f7f8;
+    --encre: #0b1233;
+    --doux: #5b6280;
+    --trait: #e2e6f3;
+    --palier-1: #dff0f3;
+    --palier-2: #e9e5f8;
+    --palier-3: #fde7eb;
+    --vert: #16a34a;
+    --vert-voile: #eaf7ef;
+    --ambre: #b45309;
+    --ambre-voile: #fdf3e6;
+    --xp: #ffc83d;
+    --police: 'DM Sans', ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--sol); color: var(--encre);
+         font: 400 15px/1.6 var(--police); -webkit-font-smoothing: antialiased; }
+  .affiche { font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; }
+  .nums { font-variant-numeric: tabular-nums; }
+  h1, h2, h3, h4 { text-wrap: balance; }
+  img { max-width: 100%; }
+
+  /* ── La barre de test, hors du produit ──────────────────────────────── */
+  .test {
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+    background: var(--encre); color: #fff;
+  }
+  body::before { content: ""; position: fixed; inset: 0 0 auto;
+                 height: env(safe-area-inset-top, 0px); z-index: 21; background: var(--encre); }
+  .test .dedans {
+    max-width: 1100px; margin: 0 auto; display: flex; flex-wrap: wrap;
+    align-items: center; gap: 8px 14px; padding-block: 10px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .test .mot { font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; opacity: 0.6; }
+  .test .choix { display: flex; gap: 6px; flex-wrap: wrap; }
+  .test button {
+    border: 1px solid rgb(255 255 255 / 0.25); background: none; color: #fff;
+    border-radius: 999px; padding: 6px 13px; font: 500 13px var(--police); cursor: pointer;
+  }
+  .test button[aria-pressed='true'] { background: #fff; color: var(--encre); font-weight: 700; border-color: #fff; }
+  .test button:focus-visible { outline: 2px solid var(--xp); outline-offset: 2px; }
+
+  .page {
+    max-width: 1100px; margin: 0 auto; padding-block: 24px 48px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .large { max-width: 1680px; }
+
+  /* ── Marque ─────────────────────────────────────────────────────────── */
+  .marque { display: flex; align-items: center; gap: 10px; }
+  .marque img { width: 32px; height: 32px; border-radius: 9px; }
+  .marque span { font-weight: 700; font-size: 16px; letter-spacing: -0.01em; }
+
+  /* ── Page de vente ──────────────────────────────────────────────────── */
+  .vente { display: grid; gap: 20px; margin-top: 22px; }
+  @media (min-width: 900px) { .vente { grid-template-columns: 1fr 360px; align-items: start; } }
+
+  .bloc { background: var(--feuille); border-radius: 18px; padding: 20px;
+          box-shadow: 0 1px 2px rgb(16 24 40 / 0.05); }
+  @media (min-width: 640px) { .bloc { padding: 26px; } }
+
+  .chapeau { font-size: 12px; font-weight: 700; letter-spacing: 0.07em;
+             text-transform: uppercase; color: var(--ambre); }
+  .vente h1 { margin: 10px 0 0; font-size: 28px; }
+  @media (min-width: 640px) { .vente h1 { font-size: 38px; } }
+  .vente .sous { margin: 12px 0 0; color: var(--doux); font-size: 16px; max-width: 48ch; }
+
+  .visuel { aspect-ratio: 16/9; border-radius: 14px; overflow: hidden; margin-top: 20px; background: var(--creux); }
+  .visuel img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  /* La porte large n'a pas d'image à elle : les quatre étapes font le visuel,
+     dans l'ordre. Deux colonnes sur téléphone — à quatre, chaque vignette
+     tomberait sous 70 px et on ne verrait plus ce qu'elle montre. */
+  .chaine { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 20px; }
+  .chaine figure { margin: 0; min-width: 0; }
+  .chaine img { width: 100%; aspect-ratio: 16/9; object-fit: cover;
+                border-radius: 10px; display: block; background: var(--creux); }
+  .chaine figcaption { display: flex; gap: 6px; margin-top: 6px; color: var(--doux);
+                       font-size: 12px; line-height: 1.3; }
+  .chaine figcaption b { color: var(--encre); font-variant-numeric: tabular-nums; }
+  @media (min-width: 720px) { .chaine { grid-template-columns: repeat(4, 1fr); } }
+  .note-test code { font: 600 11.5px ui-monospace, monospace; opacity: 0.75; }
+
+  .liste { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 10px; }
+  .liste li { display: flex; gap: 10px; align-items: flex-start; font-size: 15px; }
+  .coche { flex-shrink: 0; width: 20px; height: 20px; border-radius: 999px;
+           background: var(--vert-voile); color: var(--vert); display: grid; place-items: center; margin-top: 2px; }
+
+  .titre-sec { margin: 0 0 4px; font-size: 19px; font-weight: 700; letter-spacing: -0.02em; }
+  .sec-sous { margin: 0 0 14px; color: var(--doux); font-size: 14px; }
+
+  .bonus { background: var(--vert-voile); border-radius: 18px; padding: 20px; margin-top: 20px; }
+  @media (min-width: 640px) { .bonus { padding: 26px; } }
+  .bonus .titre-sec { color: var(--vert); }
+  .bonus-grille { display: grid; gap: 10px; margin-top: 14px; }
+  @media (min-width: 620px) { .bonus-grille { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .bonus-ligne { display: flex; gap: 12px; align-items: center; background: var(--feuille);
+                 border-radius: 12px; padding: 10px 12px; min-width: 0; }
+  .bonus-ligne img { width: 54px; height: 32px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
+  .bonus-ligne div { min-width: 0; }
+  .bonus-ligne b { display: block; font-size: 13.5px; font-weight: 700; line-height: 1.3; }
+  .bonus-ligne small { color: var(--doux); font-size: 12px; }
+
+  /* ── Le panneau de prix ─────────────────────────────────────────────── */
+  .prix-panneau { position: sticky; top: 76px; }
+  .prix-chapeau { margin: 0 0 10px; color: var(--doux); font-size: 12px; letter-spacing: 0.06em;
+                  text-transform: uppercase; font-weight: 700; }
+  /* Le montant barre est celui qu'il ne paie PAS aujourd'hui, et le mot
+     « d'un coup » le dit : barrer 20 000 sans ça annoncerait une remise
+     qui n'existe pas. */
+  .prix-avant { margin: 0; display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap; }
+  .prix-avant s { color: var(--doux); font-size: 19px; font-weight: 600;
+                  text-decoration-thickness: 2px; text-decoration-color: var(--vert); }
+  .prix-avant span { color: var(--doux); font-size: 13px; }
+  .prix-grand { margin: 2px 0 0; font-size: 40px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.05; }
+  .prix-grand span { font-size: 17px; font-weight: 600; letter-spacing: 0; color: var(--doux); }
+  .prix-sous { margin: 8px 0 0; color: var(--doux); font-size: 14px; }
+  .prix-note { margin: 8px 0 0; color: var(--doux); font-size: 12.5px; line-height: 1.45; }
+  .prix-deux { margin: 12px 0 0; display: flex; gap: 8px; }
+  .prix-deux div { flex: 1; background: var(--creux); border-radius: 10px; padding: 9px 10px; }
+  .prix-deux b { display: block; font-size: 15px; }
+  .prix-deux small { display: block; color: var(--doux); font-size: 11.5px; line-height: 1.35; margin-top: 2px; }
+  .bouton {
+    display: block; width: 100%; margin-top: 18px; border: 0; border-radius: 999px;
+    background: var(--encre); color: var(--feuille);
+    padding: 15px 20px; font: 700 15px var(--police); text-align: center; cursor: pointer;
+  }
+  .bouton:active { transform: scale(0.985); }
+  .bouton.clair { background: var(--feuille); color: var(--encre); box-shadow: inset 0 0 0 1px var(--trait); }
+  /* Le second bouton existe pour être vu, pas pour être choisi : même largeur,
+     mais plus bas, plus petit, sans aplat. Deux boutons noirs côte à côte
+     feraient hésiter au lieu d'aider. */
+  /* Sur un panneau blanc, un bouton blanc n'est qu'un liseré : il faut un
+     creux pour qu'on le voie, sans qu'il concurrence l'aplat noir. */
+  .bouton.clair.petit { margin-top: 8px; padding: 12px 16px; font-size: 13.5px;
+                        background: var(--creux); }
+  .bouton:focus-visible { outline: 2px solid var(--encre); outline-offset: 3px; }
+  .moyens { margin: 16px 0 0; padding-top: 16px; border-top: 1px solid var(--trait);
+            color: var(--doux); font-size: 13px; }
+  .moyens b { display: block; color: var(--encre); font-size: 12px; letter-spacing: 0.06em;
+              text-transform: uppercase; margin-bottom: 8px; }
+  .jetons { display: flex; flex-wrap: wrap; gap: 6px; }
+  .jeton { border: 1px solid var(--trait); border-radius: 8px; padding: 5px 9px;
+           font-size: 12.5px; color: var(--encre); background: var(--creux); }
+  .rassure { margin: 14px 0 0; color: var(--doux); font-size: 13px; }
+  .bouton-wa {
+    display: flex; align-items: center; justify-content: center; gap: 9px;
+    margin-top: 14px; border-radius: 999px; padding: 11px 14px;
+    background: var(--vert-voile); color: #0f7a37; text-decoration: none;
+    box-shadow: inset 0 0 0 1px #9ddcb4; text-align: left;
+  }
+  .bouton-wa span { font-size: 13.5px; font-weight: 700; line-height: 1.25; }
+  .bouton-wa em { display: block; font-style: normal; font-weight: 600;
+                  font-size: 12.5px; opacity: 0.8; font-variant-numeric: tabular-nums; }
+  .bouton-wa:active { transform: scale(0.985); }
+  .bouton-wa:focus-visible { outline: 2px solid #0f7a37; outline-offset: 3px; }
+
+  /* ── Écran après paiement ───────────────────────────────────────────── */
+  .recu { background: var(--vert-voile); border-radius: 18px; padding: 22px; text-align: center; margin-top: 22px; }
+  .recu .pastille { width: 46px; height: 46px; border-radius: 999px; background: var(--vert);
+                    color: #fff; display: grid; place-items: center; margin: 0 auto 12px; }
+  .recu h1 { margin: 0; font-size: 24px; }
+  .recu p { margin: 8px auto 0; color: var(--doux); max-width: 44ch; font-size: 15px; }
+  /* L'échéance se dit ici et nulle part avant : sur la page de vente, elle se
+     lit comme une menace ; une fois payé, c'est un service. */
+  .recu .versement { margin: 14px auto 0; max-width: 44ch; background: var(--feuille);
+                     border-radius: 12px; padding: 10px 14px; font-size: 14px; }
+  .recu .versement b { color: var(--encre); }
+
+  .offre { background: var(--feuille); border-radius: 18px; padding: 22px; margin-top: 16px;
+           box-shadow: 0 1px 2px rgb(16 24 40 / 0.05); }
+  @media (min-width: 640px) { .offre { padding: 28px; } }
+  .trois { display: grid; gap: 12px; margin: 16px 0 0; }
+  @media (min-width: 620px) { .trois { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .mini { border: 1px solid var(--trait); border-radius: 14px; overflow: hidden; background: var(--feuille); }
+  .mini img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
+  .mini div { padding: 10px 12px; }
+  .mini b { display: block; font-size: 13.5px; line-height: 1.3; }
+  .mini small { color: var(--doux); font-size: 12px; }
+
+  .compte { display: grid; gap: 8px; margin-top: 18px; padding: 16px; border-radius: 14px; background: var(--creux); }
+  .compte .l { display: flex; justify-content: space-between; gap: 16px; font-size: 14.5px; }
+  .compte .l.total { border-top: 1px solid var(--trait); padding-top: 10px; margin-top: 2px;
+                     font-weight: 700; font-size: 16px; }
+  .barre-prix { text-decoration: line-through; color: var(--doux); }
+  .gain { color: var(--vert); font-weight: 700; }
+
+  /* ── Le catalogue, dans la plateforme ───────────────────────────────── */
+  .carte { display: flex; background: var(--feuille); border-radius: 24px; margin-top: 22px;
+           box-shadow: 0 8px 16px -8px rgb(16 24 40 / 0.1), 0 32px 64px -24px rgb(16 24 40 / 0.16); }
+  @media (max-width: 767px) { .carte { flex-direction: column; } }
+  .rail { background: var(--creux); border-bottom: 1px solid var(--trait);
+          border-radius: 24px 24px 0 0; flex-shrink: 0; }
+  @media (min-width: 768px) {
+    .rail { width: 88px; border-bottom: 0; border-right: 1px solid var(--trait); border-radius: 24px 0 0 24px; }
+  }
+  .tete { display: none; height: 64px; align-items: center; justify-content: center; border-bottom: 1px solid var(--trait); }
+  @media (min-width: 768px) { .tete { display: flex; } }
+  .tete img { width: 34px; height: 34px; border-radius: 10px; }
+  .liens { display: flex; gap: 4px; overflow-x: auto; padding: 8px; scrollbar-width: none; }
+  .liens::-webkit-scrollbar { display: none; }
+  @media (min-width: 768px) { .liens { flex-direction: column; gap: 6px; padding: 16px 10px; } }
+  .onglet { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0;
+            padding: 10px 12px; border-radius: 16px; color: var(--doux); font-size: 11px; text-align: center; }
+  @media (min-width: 768px) { .onglet { padding: 12px 4px; } }
+  .onglet[data-actif] { background: var(--feuille); color: var(--encre); font-weight: 700;
+                        box-shadow: 0 1px 2px rgb(16 24 40 / 0.06); }
+  .colonne { flex: 1; min-width: 0; }
+  .barre-app { display: flex; align-items: center; gap: 12px; height: 64px; padding: 0 16px;
+               border-bottom: 1px solid var(--trait); }
+  @media (min-width: 640px) { .barre-app { padding: 0 24px; } }
+  .barre-app h2 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.015em; }
+  .avatar { margin-left: auto; width: 34px; height: 34px; border-radius: 999px; background: #1a6ef5;
+            color: #fff; display: grid; place-items: center; font-size: 12.5px; font-weight: 700; }
+  .dedans-app { padding: 22px 16px 32px; }
+  @media (min-width: 640px) { .dedans-app { padding: 28px 24px 40px; } }
+
+  .section-titre { display: flex; align-items: center; gap: 10px; padding-bottom: 10px;
+                   margin: 30px 0 14px; border-bottom: 1px solid var(--trait); }
+  .section-titre:first-child { margin-top: 0; }
+  .numeral { width: 34px; height: 34px; flex-shrink: 0; border-radius: 10px; border: 1px solid;
+             display: grid; place-items: center; font-weight: 700; font-size: 15px; }
+  .numeral.n1 { background: rgb(13 148 136 / 0.08); border-color: rgb(13 148 136 / 0.4); color: #0f766e; }
+  .numeral.n2 { background: rgb(124 58 237 / 0.07); border-color: rgb(124 58 237 / 0.4); color: #6d28d9; }
+  .numeral.n3 { background: rgb(225 29 72 / 0.07); border-color: rgb(225 29 72 / 0.4); color: #be123c; }
+  .section-titre h3 { margin: 0; font-size: 16px; font-weight: 700; letter-spacing: -0.015em; }
+  .section-titre p { margin: 0; color: var(--doux); font-size: 12px; }
+  .section-titre .droite { margin-left: auto; flex-shrink: 0; }
+
+  .grille { display: grid; gap: 14px; grid-template-columns: 1fr; align-items: start; }
+  @media (min-width: 620px) { .grille { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (min-width: 1000px) { .grille { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+  .tuile { border-radius: 16px; overflow: hidden; box-shadow: 0 1px 2px rgb(16 24 40 / 0.06);
+           display: flex; flex-direction: column; }
+  .tuile .haut { padding: 11px; }
+  .tuile.p1 .haut { background: var(--palier-1); }
+  .tuile.p2 .haut { background: var(--palier-2); }
+  .tuile.p3 .haut { background: var(--palier-3); }
+  .tuile .vign { position: relative; aspect-ratio: 16/9; border-radius: 11px; overflow: hidden;
+                 background: rgb(255 255 255 / 0.6); }
+  .tuile .vign img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .tuile.ferme .vign img { opacity: 0.45; }
+  .cadenas { position: absolute; inset: 0; display: grid; place-items: center; }
+  .cadenas span { width: 34px; height: 34px; border-radius: 999px; background: rgb(11 18 51 / 0.72);
+                  color: #fff; display: grid; place-items: center; }
+  .tuile .corps { padding: 12px 3px 2px; }
+  .tuile h4 { margin: 0; font-size: 14.5px; font-weight: 700; line-height: 1.35; }
+  .tuile .info { margin: 6px 0 0; color: rgb(11 18 51 / 0.65); font-size: 12px; }
+  .tuile .pied { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+                 padding: 11px 14px; background: var(--feuille); }
+  .etat { font-size: 12px; font-weight: 700; }
+  .etat.a-toi { color: var(--vert); }
+  .etat.offert { color: var(--vert); }
+  .etat.ferme { color: var(--ambre); }
+  .bouton-mini { border-radius: 999px; padding: 7px 14px; font-size: 12px; font-weight: 700;
+                 background: var(--encre); color: var(--feuille); flex-shrink: 0; }
+  .bouton-mini.calme { background: var(--creux); color: var(--doux); }
+
+  .bandeau-palier { border-radius: 18px; padding: 18px; margin-top: 14px; display: flex;
+                    flex-wrap: wrap; align-items: center; gap: 14px; }
+  .bandeau-palier.p2 { background: var(--palier-2); }
+  .bandeau-palier.p3 { background: var(--palier-3); }
+  .bandeau-palier div { min-width: 0; flex: 1; }
+  .bandeau-palier b { display: block; font-size: 15px; }
+  .bandeau-palier small { color: rgb(11 18 51 / 0.7); font-size: 13px; }
+
+  .note-test { background: var(--ambre-voile); border-radius: 14px; padding: 14px 16px;
+               margin-top: 20px; color: var(--ambre); font-size: 13.5px; }
+  .note-test b { display: block; margin-bottom: 2px; }
+
+  /* ── Les sommaires ──────────────────────────────────────────────────
+     Montrer chaque titre de leçon est l'argument de vente le plus fort
+     qu'on ait : on n'achète pas « 7 leçons », on achète « Le Sourcing
+     Intra-Régional ». Le sommaire de la formation achetée est ouvert ;
+     ceux des bonus et des blocs fermés se déplient. */
+  .sommaire { margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--trait); }
+  ol.lecons { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 2px; }
+  ol.lecons li { display: flex; gap: 10px; align-items: baseline; padding: 9px 11px;
+                 border-radius: 9px; font-size: 14px; }
+  ol.lecons li:nth-child(odd) { background: var(--creux); }
+  ol.lecons .n { flex-shrink: 0; width: 18px; color: var(--doux); font-size: 12px;
+                 font-variant-numeric: tabular-nums; }
+  ol.lecons .t { flex: 1; min-width: 0; }
+  ol.lecons .d { flex-shrink: 0; color: var(--doux); font-size: 12.5px;
+                 font-variant-numeric: tabular-nums; }
+  ol.lecons .cle { flex-shrink: 0; color: var(--ambre); display: inline-flex; }
+
+  details > summary { cursor: pointer; list-style: none; }
+  details > summary::-webkit-details-marker { display: none; }
+  details > summary:focus-visible { outline: 2px solid var(--encre); outline-offset: 2px; border-radius: 10px; }
+  .chevron { flex-shrink: 0; color: var(--doux); transition: transform .15s; }
+  details[open] .chevron { transform: rotate(180deg); }
+
+  .voir { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+          padding: 11px 14px; border-top: 1px solid var(--trait); background: var(--feuille);
+          font-size: 12.5px; font-weight: 700; color: var(--doux); }
+  .tuile details ol.lecons { padding: 4px 10px 12px; background: var(--feuille); margin: 0; }
+  .tuile details ol.lecons li { font-size: 13px; padding: 7px 8px; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="test">
+  <div class="dedans">
+    <span class="mot">Lien de test</span>
+    <div class="choix" id="choix">
+      <button type="button" data-vue="vente" aria-pressed="true">1 · La pub mène ici</button>
+      <button type="button" data-vue="apres" aria-pressed="false">2 · Après le paiement</button>
+      <button type="button" data-vue="dedans" aria-pressed="false">3 · Une fois dedans</button>
+    </div>
+  </div>
+</div>
+
+<div id="ecran"></div>
+
+<script>
+const MARQUE = 'data:image/png;base64,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';
+// Les titres réels, repris du plan — rien d'inventé.
+const LECONS = {"m1-1.png": [["Les chiffres réels : budget, timeline, et ce que personne ne te dit", 9], ["Le cerveau du testeur : ton premier produit sera probablement un flop", 6], ["Les biais cognitifs qui tuent les débutants", 7], ["L'argent du business n'est pas ton argent", 3]], "m1-2.png": [["La porte d’entrée", 6]], "m2-2.png": [["La mort de ton ancien toi", 12], ["La clarté radicale : une seule cible, pas dix", 5], ["Systèmes vs Motivation : pourquoi la volonté ne suffit jamais", 16], ["Ta vision est programmée par ton environnement", 17], ["La régulation émotionnelle : ton arme secrète", 18], ["Monk Mode : couper le bruit pour avancer 10x plus vite", 16], ["L'art de la semaine structurée", 13], ["CETTE VIDEO PEUT TE RAPPORTER 300 MILLIONS", 2]], "m2-3.png": [["Présentation du Business Du E-commerce En Afrique par Junior Djato", 6], ["La clé du E-commerce", 5], ["Optimisez votre Recherche Produits avec l’IA", 3], ["Maximiser Votre Recherche Produits : L'ORGANISATION", 3], ["4 Outils Essentiels pour Trouver des Winners", 2], ["Le Manisfeste d'un Produit Winner", 11], ["Cas Réel : Recherche Produit Saisonnier via Facebook Ads Library", 8], ["Cas Réel : Recherche Produit Mainstream via Facebook Ads Library", 9], ["Cas Réel : Recherche Produit via Tiktok", 5]], "m2-4.png": [["L’importance d’un Bon Sourcing", 2], ["Les 3 Méthodes de Sourcing : Avantages et Inconvénient", 12], ["Le Sourcing Intra-Régional : Tout ce que Vous Devez Savoir", 12], ["Le Sourcing Ali Baba : Tout ce que Vous Devez Savoir", 5], ["Le Sourcing via un Agent  : Tout ce que Vous Devez Savoir", 3], ["Comment Envoyer un Colis depuis la Chine : Guide Complet", 6], ["Cas Réel : Sourcing Ali Baba", 4]], "m2-5.png": [["Introduction à Shopify", 7], ["Les Différents types de sites web et leurs usages", 5], ["Nom de Domaine + Connexion sur Shopify", 7], ["Création de logo shopify", 3], ["Faire une description produits optimisé", 16], ["Personnalisation de Thème Shopify  de A a Z", 10], ["Formulaire de Paiement Efficace : Easy Sell", 12], ["Comment dupliquer ca boutique Shopify en moins de 3 minutes", 5], ["Comment Afficher le FCFA AU LIEU DU XOF", 1], ["Le pricing de vos produits et votre marge", 8], ["Mettre en place un upsell avec easy sell", 5], ["Mettre en place un upsell avec easy sell", 4], ["Recevoir Vos Commandes sur Google sheet  depuis easysell", 7]], "m2-6.png": [["Les 7 P du Marketing : Les Clés pour Une Stratégie Réussie", 8], ["Fixation de Prix : Les Principales Stratégies pour Votre E-commerce", 5], ["Pourquoi et Comment Définir une Stratégie de Prix Efficace ?", 8], ["Cycle de Vie d’un Produit : De l’Introduction au Déclin", 8]], "m2-7.png": [["Facebook en Bref : Fonctionnement + Règles", 9], ["Présentation de Facebook : Connexion jusqu'a la création de page", 11], ["Découvrez les Coulisses de Facebook : Comment Ça Marche ?", 9], ["ABO, CBO, Advantage+,Flexible  : Quelle Méthode Choisir et Pourquoi ?", 7], ["De A à Z : Le Processus pour Lancer une Campagne Réussie", 21], ["Analyse 360° : Comment Configurer et Exploiter Vos Résultats", 6], ["Analyse des Résultats : Les Indicateurs de Performance Essentiels", 9], ["Le Scaling : Différence entre Horizontal et Vertical", 8], ["Que Faire Quand Facebook Dit Non à Vos Publicités ?", 1], ["Blocages Facebook : Décodez l’Algorithme pour Éviter les Sanctions", 6], ["Question fréquentes (Généralité) sur Facebook", 5], ["Mise à jour ANDROMEDA : Comprendre l'algorithme Andromeda de Meta pour optimiser vos publicités", 8], ["Mise à jour ANDROMEDA : Optimiser vos campagnes marketing avec Andromeda", 11], ["Mise à jour :  Comprendre la phase de testing et le coût par achat sur Meta 💰", 10]], "m2-8.png": [["Introduction : L'Importance du SAV et du Closing dans l'E-commerce", 14], ["Comment avoir un taux de closing éléve que la moyenne ?", 7], ["Gérez Vos Finances : Calculer et Suivre Votre Chiffre et Vos Bénéfices", 8], ["Approvisionnement Stratégique : Maximisez Vos Gains en Choisissant le Moment Idéal", 5], ["Comment manager son équipe Efficacement", 3]], "m3-1.png": [["Créatives Publicitaires : Définition, Importance et Objectifs", 6], ["L’Art de la Créative Stratégique : FRAMEWORK", 9], ["De l’Installation à la Création : Découvrir CapCut", 17], ["La Recherche de Vidéos pour le Montage : Astuces et Outils", 17], ["Script + Voix Off Naturelle : Astuces pour Une Narration Authentique", 16], ["De A à Z : Monter Une Créative Qui Captive et Convertit", 25], ["Créer des Images Publicitaires Performantes avec CANVA", 10]], "p04.png": [["Pourquoi utiliser des logiciels ?", 2], ["Présentation de TrendTrack", 2], ["Recherche produit par les pages", 9], ["Recherche produit par les ads — partie 1", 3], ["Recherche produit par les ads — partie 2", 7], ["Diviser le prix : s’associer à 3 ou 4", 3], ["Faire une veille concurrentielle pour scaler", 4], ["Les marchés les plus rentables pour trouver des produits Winner", 7], ["Mindset du Scaling", 11], ["Optimiser l’existant avant d’élargir", 10], ["Préparer Votre Mental Pour L'étranger", 7], ["Vendre sur d'autres pays : Comment Ça Fonctionne ?", 4], ["Comment Trouver un Service de Livraison Fiable ?", 13], ["Comment Recevoir Vos Paiements en Toute Sécurité", 3], ["Comptabilité avec l'intelligence artificielle", 10], ["Méthode 1 : Recevoir L'argent Depuis d'autres pays de L'Afrique 1", 5], ["Méthode 2 : Recevoir L'argent Depuis d'autres pays de L'Afrique 2", 7], ["Phase de scaling FULL CBO", 1], ["Lookalike : Une Stratégies pour Maximiser Vos Résultats", 4], ["Retargeting : Une Stratégies pour Maximiser Vos Résultats", 5]], "p05.png": [["Pourquoi utiliser l’IA pour vos publicités", 4], ["Comprendre Claude", 7], ["Installer Claude Code", 2], ["Créer un projet dans Claude", 6], ["Créer le fichier MD", 8], ["Configurer Claude", 5], ["Les bases et la création de skills", 21], ["C’est quoi une fiche produit ?", 5], ["Créer une fiche produit", 12], ["Créer ses contenus publicitaires", 7], ["Les emails marketing", 3], ["Présentation de Vizuely", 3], ["Comment créer un compte sur Vizuely ?", 1], ["Importer ces produits sur Vizuely", 2], ["Comment cloner une publicité sur Vizuely ? ( Methode 1 )", 5], ["Comment utiliser la partie « Créativité libre » ?", 3], ["Comment connecter Claude et générer des images avec Vizuely ? ( partie 1  )", 7], ["Comment cloner des images avec l'autre Partie 2", 9], ["Faire des UGC solo avec Vizuely", 8], ["Faire des UGC duo sur Vizuely", 3], ["Faire des UGC depuis le directeur marketing", 7], ["Comment faire des publicités statiques avec Nanobanana Pro", 21], ["Faire un shooting professionnel Produit avec NanoBanana", 9], ["Le Marketing Studio : Créer des Pubs Produit en Un Clic", 14], ["ChatGPT Images : les bases", 2], ["Des visuels produit premium avec ChatGPT Images", 8]], "p06.png": [["INTRODUCTION - POURQUOI VENDRE SUR WHATSAPP ?", 7], ["Comment faire une recherche produit WhatsApp ?", 12], ["Sourcing et gestion de stock", 9], ["Comment configurer son WhatsApp Business ?", 23], ["Comment vendre avec WhatsApp Business ?", 8], ["Comment lancer des publicités sur WhatsApp ?", 17], ["Comment analyser est-ce qu'il est avec WhatsApp ?", 8], ["Ce que vous devez retenir", 3], ["Introduction à TikTok", 1], ["Presentation de tiktok", 3], ["Création de Compte Tiktok", 10], ["L'interface de Tiktok", 10], ["Publier du Contenue sur Tiktok", 5], ["Lancer des publicites sur Tiktok", 8], ["Ce que vous devez retenir sur tiktok", 1]], "p07.png": [["Pourquoi tu dois déléguer", 5], ["Recruter la personne des relances et du SAV", 11], ["Comment Recruter une Closeuse Performante ?", 10], ["Où trouver ces personnes", 8], ["Les salaires, et comment les payer", 6], ["L’onboarding", 8], ["Les erreurs à ne pas faire", 9]], "p09.png": [["Pourquoi créer une marque et pas seulement vendre que en générique ?", 5], ["Le potentiel spécifique en Afrique : faible concurrence sur les marques locales, forte demande d’authenticité", 6], ["La recherche et la validation  : Comment savoir si votre produit est apte à passer en marque ?", 6], ["La recherche et la validation  : Choisir son angle unique", 11], ["Méthode 1 : Pour la création de marque ( Ali Baba )", 4], ["Marque Monoproduit vs Marque Nichée", 5], ["Pourquoi le packaging est crucial en Afrique", 6], ["Création de packaging  avec Ai ( Inspiration )", 6], ["Où est-ce que vous pouvez faire vos packagings ?", 3], ["Canaux de communication Pour votre marque", 7], ["Publicité efficace :  Créer une vidéo qui capte et convertit", 10]], "p10.png": [["(ancienne méthode) Phase de scaling en ABO", 1], ["SET-UP ANTI-BAN META", 1], ["Le set-up anti-ban Meta", 9]], "p11.png": [["Recruter des A-players", 9]], "p12.png": [["Automatiser son business avec l’IA", 4], ["Pourquoi donner un cerveau à son IA", 6], ["Télécharger Antigravity", 1], ["Le set-up : Antigravity + Claude", 6], ["Présentation de Antigravity", 8], ["Un rôle par discussion", 5], ["La démo dans Antigravity", 3], ["Nourrir le cerveau", 4]]};
+
+// Les dix blocs du palier 1, dans l'ordre du chemin. `porte: true` = ce bloc a
+// une promesse qu'on peut mettre dans une publicité ; les autres se découvrent
+// une fois dedans. Tous sont donnés au même achat : le palier est une chaîne,
+// et un maillon seul ne produit aucun résultat.
+const PALIER1 = [
+  { cover: 'm2-3.png', cle: 'produit', nom: 'Trouver un produit gagnant', lecons: 9, min: 51, porte: true,
+    pub: 'Trouver un produit qui se vend',
+    phrase: 'Arrête de deviner. Repérer un produit qui marche avant de mettre un franc dedans.',
+    pont: 'Repérer le bon produit est le début, pas la fin : il faut encore le faire venir, une boutique pour le vendre, et des publicités pour amener les gens.' },
+  { cover: 'm2-4.png', cle: 'alibaba', nom: 'Sourcer et faire venir la marchandise', lecons: 7, min: 44, porte: true,
+    pub: 'Commander en Chine sans te faire avoir',
+    phrase: 'Trouver un fournisseur, négocier le prix, payer sans risque, et faire venir la marchandise jusque chez toi.',
+    pont: 'Savoir commander ne sert à rien sans le bon produit à commander, sans boutique où le vendre, ni publicité pour amener les gens.' },
+  { cover: 'm2-5.png', cle: 'boutique', nom: 'Construire la boutique', lecons: 13, min: 90, porte: true,
+    pub: 'Monter ta boutique en ligne',
+    phrase: 'De la page produit au paiement à la livraison : une boutique qui vend, montée par toi, sans développeur.',
+    pont: 'Une boutique vide ne vend rien. Il lui faut le bon produit dedans, de la marchandise à livrer, et des publicités pour amener les gens.' },
+  { cover: 'm2-7.png', cle: 'facebook', nom: 'Lancer Facebook Ads', lecons: 14, min: 120, porte: true,
+    pub: 'Des pubs Facebook qui rapportent',
+    phrase: 'Lancer, lire les chiffres, couper ce qui brûle ton argent. Pas de théorie : ce que je fais chaque jour.',
+    pont: 'Une bonne publicité sur un mauvais produit te fait juste perdre ton argent plus vite. Il faut le produit, la marchandise et la boutique derrière.' },
+  { cover: 'm3-1.png', nom: 'L’atelier créa — outils gratuits', lecons: 7, min: 99 },
+  { cover: 'm2-2.png', nom: 'Devenir la personne qui réussit', lecons: 8, min: 100 },
+  { cover: 'm2-8.png', nom: 'Livrer, encaisser, compter', lecons: 5, min: 38 },
+  { cover: 'm2-6.png', nom: 'Prix, marge, stratégie', lecons: 4, min: 29 },
+  { cover: 'm1-1.png', nom: 'Préparation mentale au e-commerce', lecons: 4, min: 26 },
+  { cover: 'm1-2.png', nom: 'La porte d’entrée', lecons: 1, min: 6 },
+];
+const PORTES = PALIER1.filter((b) => b.porte);
+const TOTAL1 = PALIER1.reduce((a, b) => ({ l: a.l + b.lecons, m: a.m + b.min }), { l: 0, m: 0 });
+
+/**
+ * La cinquième porte ne correspond à aucun bloc : son sujet **est** la chaîne
+ * entière. C'est l'annonce large, pour qui sait déjà qu'il veut faire du
+ * e-commerce et n'a pas besoin qu'on lui vende une étape. Elle n'a donc pas
+ * d'image à elle : son visuel est la suite des quatre étapes, ce qui dit en
+ * une ligne ce que les quatre autres pages mettent un paragraphe à dire.
+ */
+const PORTE_LARGE = {
+  cle: 'ecommerce', large: true, porte: true,
+  nom: 'Se lancer en e-commerce',
+  pub: 'Lancer ton e-commerce, de zéro',
+  phrase:
+    'Le produit, le fournisseur, la boutique, les publicités, la livraison. Tout le chemin, '
+    + 'dans l’ordre, par quelqu’un qui le fait chaque jour.',
+  lecons: TOTAL1.l, min: TOTAL1.m,
+};
+const TOUTES = [...PORTES, PORTE_LARGE];
+const laPorte = () => TOUTES.find((x) => x.cle === porteChoisie) || PORTES[1];
+
+const SUITE = [
+  { num: 2, titre: 'De 2 à 5 millions', blocs: [
+      { cover: 'p04.png', nom: 'Le palier', lecons: 20, min: 117 },
+      { cover: 'p05.png', nom: 'L’atelier IA', lecons: 26, min: 182 },
+      { cover: 'p06.png', nom: 'Ouvrir de nouveaux canaux', lecons: 15, min: 124 },
+      { cover: 'p07.png', nom: 'Déléguer : ta première personne', lecons: 7, min: 57 },
+    ] },
+  { num: 3, titre: '5 millions à l’infini', blocs: [
+      { cover: 'p09.png', nom: 'La marque', lecons: 11, min: 69 },
+      { cover: 'p12.png', nom: 'Le cerveau IA', lecons: 8, min: 37 },
+      { cover: 'p10.png', nom: 'Facebook à grande échelle', lecons: 3, min: 9 },
+      { cover: 'p11.png', nom: 'Construire l’équipe', lecons: 1, min: 9 },
+      { cover: 'p08.png', nom: 'L’état d’esprit du palier', lecons: 0, min: 0 },
+    ] },
+];
+const TOTAL23 = SUITE.flatMap((n) => n.blocs).reduce((a, b) => a + b.lecons, 0);
+
+const MOYENS = ['Wave', 'Orange Money', 'MTN MoMo', 'Moov Money', 'Free Money', 'Carte bancaire'];
+const WHATSAPP = '+229 01 69 25 76 99';
+// wa.me n'accepte que des chiffres : le numéro s'écrit une fois, lisible,
+// et le lien se déduit — deux copies divergeraient dès qu'il change.
+const WA = 'https://wa.me/' + WHATSAPP.replace(/\D/g, '');
+const WA_ICONE = `<svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.347-.347.52-.52.174-.173.232-.297.347-.495.115-.198.057-.371-.058-.52-.115-.148-.652-1.57-.893-2.148-.213-.52-.43-.43-.594-.43-.173 0-.372-.025-.57-.025-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>`;
+let planChoisi = 'plein';
+const PRIX = { entree: 20000, acompte: 10000, reste: 10000, jours: 14, suite: 77000, total: 97000 };
+
+const ech = (t) => String(t).replace(/[&<>"]/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// L'espace insécable sépare les milliers : « 20 000 F CFA » ne doit jamais se
+// couper en bout de ligne sur un téléphone.
+const fcfa = (n) => n.toLocaleString('fr-FR').replace(/ |\s/g, ' ') + ' F CFA';
+const temps = (m) => (m >= 60 ? Math.floor(m / 60) + ' h ' + String(m % 60).padStart(2, '0') : m + ' min');
+// La date est calculée à l'ouverture de la page : une date écrite en dur serait
+// passée demain, et sur un lien de test c'est ce qu'on remarque en premier.
+const ENMOTS = ['zéro', 'une', 'deux', 'trois', 'quatre', 'cinq'];
+const dansJours = (n) =>
+  new Date(Date.now() + n * 864e5).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+
+const COCHE = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg>';
+const VERROU = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>';
+const CHEVRON = '<svg class="chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+const PETITE_CLE = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>';
+
+/** Le sommaire d'un bloc : une ligne par leçon, numérotée, avec sa durée. */
+function sommaire(cover, ferme) {
+  const l = LECONS[cover] || [];
+  if (l.length === 0) return '<p class="rassure">Les leçons arrivent.</p>';
+  return `<ol class="lecons">${l.map(([titre, min], i) => `
+    <li>
+      <span class="n">${String(i + 1).padStart(2, '0')}</span>
+      <span class="t">${ech(titre)}</span>
+      ${ferme ? `<span class="cle">${PETITE_CLE}</span>` : ''}
+      <span class="d">${min} min</span>
+    </li>`).join('')}</ol>`;
+}
+
+const marque = () =>
+  `<div class="marque"><img src="${MARQUE}" alt=""><span>EcomLiberty</span></div>`;
+
+/** Une ligne de bloc inclus, dépliable sur son sommaire. */
+const ligneIncluse = (b, achete) => `
+  <details class="bonus-ligne" style="display:block">
+    <summary style="display:flex;gap:12px;align-items:center;min-width:0">
+      <img src="couv/${b.cover}" alt="">
+      <div style="min-width:0;flex:1">
+        <b>${ech(b.nom)}${achete ? ' — celle que tu achètes' : ''}</b>
+        <small>${b.lecons} leçons · ${temps(b.min)}</small>
+      </div>
+      ${CHEVRON}
+    </summary>
+    ${sommaire(b.cover, false)}
+  </details>`;
+
+/* ── 1. La page où mène la publicité ─────────────────────────────────── */
+function vueVente() {
+  const p = laPorte();
+  // Sur la porte large, les « étapes suivantes » sont les quatre : elle n'en
+  // retire aucune, puisqu'elle ne promet pas une étape mais le chemin.
+  const suivantes = p.large ? PORTES : PORTES.filter((x) => x.cle !== p.cle);
+  const reste = PALIER1.filter((x) => !x.porte);
+  return `
+  <div class="page">
+    ${marque()}
+    <div class="vente">
+      <div>
+        <div class="bloc">
+          <p class="chapeau">
+            ${p.large ? 'Formation complète' : 'Formation'} · ${p.lecons} leçons · ${temps(p.min)}
+          </p>
+          <h1 class="affiche">${ech(p.pub)}</h1>
+          <p class="sous">${ech(p.phrase)}</p>
+          ${p.large
+            ? `<div class="chaine">${PORTES.map((x, i) => `
+                <figure>
+                  <img src="couv/${x.cover}" alt="" loading="lazy">
+                  <figcaption><b>${i + 1}</b>${ech(x.nom)}</figcaption>
+                </figure>`).join('')}</div>`
+            : `<div class="visuel"><img src="couv/${p.cover}" alt=""></div>`}
+          <ul class="liste">
+            <li><span class="coche">${COCHE}</span><span><b>Tu regardes sur ton téléphone</b>, à ton rythme, autant de fois que tu veux.</span></li>
+            <li><span class="coche">${COCHE}</span><span><b>Accès à vie.</b> Tu paies une fois, tu gardes.</span></li>
+            <li><span class="coche">${COCHE}</span><span><b>En français, avec des exemples d’ici</b> — pas des captures d’écran américaines.</span></li>
+          </ul>
+
+          ${p.large ? '' : `
+          <div class="sommaire">
+            <h2 class="titre-sec">Le sommaire complet</h2>
+            <p class="sec-sous">Les ${p.lecons} leçons, dans l’ordre. Tu vois tout avant de payer.</p>
+            ${sommaire(p.cover, false)}
+          </div>`}
+        </div>
+
+        <div class="bonus">
+          <h2 class="titre-sec">
+            ${p.large ? 'Le chemin, dans l’ordre' : 'Et la suite du chemin est dedans'}
+          </h2>
+          <p class="sec-sous">
+            ${p.large
+              ? 'Les quatre étapes, dans l’ordre où on les fait. Déplie-les : tu vois chaque leçon avant de payer.'
+              : `${ech(p.pont)} Les ${ENMOTS[suivantes.length] || suivantes.length} étapes qui restent sont comprises, au même prix.`}
+          </p>
+          <div class="bonus-grille">
+            ${suivantes.map((b) => ligneIncluse(b)).join('')}
+          </div>
+
+          <h2 class="titre-sec" style="margin-top:22px">Plus six formations pour tenir la route</h2>
+          <p class="sec-sous">${reste.reduce((a, b) => a + b.lecons, 0)} leçons de plus, incluses elles aussi.</p>
+          <div class="bonus-grille">
+            ${reste.map((b) => ligneIncluse(b)).join('')}
+          </div>
+        </div>
+      </div>
+
+      <aside class="prix-panneau">
+        <div class="bloc">
+          <p class="prix-chapeau">Le palier 1 en entier</p>
+          <p class="prix-grand nums">${fcfa(PRIX.entree)}</p>
+          <p class="prix-sous">Une fois, et c’est à toi. Pas d’abonnement, rien à résilier.</p>
+          <button type="button" class="bouton" data-aller="apres" data-plan="plein">
+            Je prends le palier 1 — ${fcfa(PRIX.entree)}
+          </button>
+          <button type="button" class="bouton clair petit" data-aller="apres" data-plan="deux">
+            Ou payer en deux fois — ${fcfa(PRIX.acompte)} aujourd’hui
+          </button>
+          <p class="prix-note">
+            Le solde de ${fcfa(PRIX.reste)} se règle dans ${PRIX.jours} jours. Même accès,
+            même minute, même total.
+          </p>
+          <div class="moyens">
+            <b>Tu paies avec</b>
+            <div class="jetons">${MOYENS.map((m) => `<span class="jeton">${ech(m)}</span>`).join('')}</div>
+            <p class="rassure">
+              <b>${TOTAL1.l} leçons, ${temps(TOTAL1.m)}</b> ouvertes tout de suite.
+            </p>
+            <p class="rassure">Accès immédiat dès que le paiement passe. Rien à installer.</p>
+          </div>
+          <a class="bouton-wa" href="${WA}" target="_blank" rel="noopener">
+            ${WA_ICONE}
+            <span>Une question ? Écris-nous<em>${ech(WHATSAPP)}</em></span>
+          </a>
+        </div>
+      </aside>
+    </div>
+
+    <div class="note-test">
+      <b>Note de test</b>
+      Cinq publicités, cinq promesses, une seule offre derrière — et le même prix.
+      Chaque annonce a son lien : ajoute la clé à la fin de l’adresse et la page
+      s’ouvre déjà dessus. Clique pour voir :
+      ${TOUTES.map((x) => `<button type="button" class="jeton" data-porte="${x.cle}"
+        style="cursor:pointer;border:1px solid currentColor${x.cle === porteChoisie ? ';font-weight:700' : ''}"
+        >${ech(x.pub)} <code>#${x.cle}</code></button>`).join(' ')}
+    </div>
+  </div>`;
+}
+
+/* ── 2. L'écran juste après le paiement ──────────────────────────────── */
+function vueApres() {
+  const p = laPorte();
+  return `
+  <div class="page">
+    ${marque()}
+    <div class="recu">
+      <span class="pastille">${COCHE.replace('width="12" height="12"', 'width="20" height="20"')}</span>
+      <h1 class="affiche">C’est bon. Tout est ouvert.</h1>
+      <p>
+        Tu es venu pour « ${ech(p.nom)} ». Tu repars avec les ${TOTAL1.l} leçons
+        du palier « De 0 à 2 millions », soit ${temps(TOTAL1.m)}.
+      </p>
+      <p class="versement">${
+        planChoisi === 'deux'
+          ? `Second versement de <b class="nums">${fcfa(PRIX.reste)}</b> le
+             <b>${dansJours(PRIX.jours)}</b>. On te le rappellera — rien à noter.`
+          : `<b>${fcfa(PRIX.entree)}</b> réglés. Plus rien à payer sur ce palier.`
+      }</p>
+    </div>
+
+    <div class="offre">
+      <h2 class="titre-sec">Commence par là</h2>
+      <p class="sec-sous">${p.large
+        ? 'Dans l’ordre. La première étape d’abord — le reste n’a pas de sens avant.'
+        : 'C’est pour ça que tu es venu. Le reste t’attend juste après.'}</p>
+      <div class="trois">
+        ${(p.large ? PORTES : [p, ...PORTES.filter((x) => x.cle !== p.cle)]).slice(0, 3).map((x, i) => `
+          <div class="mini">
+            <img src="couv/${x.cover}" alt="">
+            <div>
+              <b>${i === 0 && !p.large ? '→ ' : ''}${ech(x.nom)}</b>
+              <small>${x.lecons} leçons · ${temps(x.min)}</small>
+            </div>
+          </div>`).join('')}
+      </div>
+      <button type="button" class="bouton" data-aller="dedans">Entrer dans ma formation</button>
+      <p class="rassure" style="text-align:center">
+        Les paliers 2 et 3 restent fermés. On en reparlera quand tu auras passé 2 millions —
+        pas avant.
+      </p>
+    </div>
+
+    <div class="note-test">
+      <b>Note de test</b>
+      Aucune offre supplémentaire ici, et c’est volontaire. Quelqu’un qui vient de payer
+      veut voir ce qu’il a acheté, pas un deuxième prix. La vente suivante se fait des mois
+      plus tard, quand il a gagné de l’argent avec la première.
+    </div>
+  </div>`;
+}
+
+/* ── 3. Le catalogue, une fois dans la plateforme ────────────────────── */
+function tuile(b, palier, etat, prix) {
+  const ferme = etat === 'ferme';
+  return `
+  <article class="tuile p${palier} ${ferme ? 'ferme' : ''}">
+    <div class="haut">
+      <div class="vign">
+        <img src="couv/${b.cover}" alt="" loading="lazy">
+        ${ferme ? `<span class="cadenas"><span>${VERROU}</span></span>` : ''}
+      </div>
+      <div class="corps">
+        <h4>${ech(b.nom)}</h4>
+        <p class="info">${b.lecons} leçons · ${temps(b.min)}</p>
+      </div>
+    </div>
+    <div class="pied">
+      <span class="etat ${etat}">${
+        etat === 'a-toi' ? 'À toi'
+          : prix ? fcfa(prix)
+          // Les blocs des paliers 2 et 3 n'ont pas de prix à eux : ils ne se
+          // vendent qu'ensemble. Un prix par bloc contredirait l'offre
+          // groupée affichée juste en dessous.
+          : `Dans le palier ${palier}`
+      }</span>
+      <span class="bouton-mini ${ferme ? '' : 'calme'}">${ferme ? 'Débloquer' : 'Regarder'}</span>
+    </div>
+    ${(LECONS[b.cover] || []).length === 0 ? '' : `
+    <details>
+      <summary class="voir"><span>Voir les ${b.lecons} leçons</span>${CHEVRON}</summary>
+      ${sommaire(b.cover, ferme)}
+    </details>`}
+  </article>`;
+}
+
+function vueDedans() {
+  return `
+  <div class="page large">
+    <div class="carte">
+      <nav class="rail">
+        <span class="tete"><img src="${MARQUE}" alt="EcomLiberty"></span>
+        <div class="liens">
+          ${['Communauté', 'Programmes', 'Lives', 'Exclusif', 'Membres', 'Calendrier', 'Documents', 'À propos']
+            .map((m, i) => `<span class="onglet" ${i === 1 ? 'data-actif' : ''}>${ech(m)}</span>`).join('')}
+        </div>
+      </nav>
+      <div class="colonne">
+        <div class="barre-app">
+          <h2>Mes formations</h2>
+          <span class="avatar">BM</span>
+        </div>
+        <div class="dedans-app">
+
+          <div class="section-titre">
+            <span class="numeral n1">1</span>
+            <div><h3>De 0 à 2 millions</h3><p>${TOTAL1.l} leçons · ${temps(TOTAL1.m)} · tout est à toi</p></div>
+          </div>
+          <div class="grille">
+            ${PALIER1.map((b) => tuile(b, 1, 'a-toi')).join('')}
+          </div>
+
+          ${SUITE.map((n) => `
+            <div class="section-titre">
+              <span class="numeral n${n.num}">${n.num}</span>
+              <div>
+                <h3>${ech(n.titre)}</h3>
+                <p>fermé — ${n.blocs.reduce((a, b) => a + b.lecons, 0)} leçons</p>
+              </div>
+            </div>
+            <div class="grille">
+              ${n.blocs.map((b) => tuile(b, n.num, 'ferme', null)).join('')}
+            </div>`).join('')}
+
+          <div class="bandeau-palier p3">
+            <div>
+              <b>Les paliers 2 et 3, ensemble</b>
+              <small>${TOTAL23} leçons. À prendre quand tu auras passé 2 millions — pas avant.</small>
+            </div>
+            <span class="bouton-mini">${fcfa(PRIX.suite)}</span>
+          </div>
+
+          <div class="note-test">
+            <b>Note de test</b>
+            Les blocs fermés gardent leur image, leur nombre de leçons et leur sommaire :
+            on ne peut pas vouloir ce qu’on ne voit pas. Nulle part un tableau de tarifs —
+            un prix n’apparaît qu’au cadenas. De bout en bout, ${fcfa(PRIX.entree)}
+            puis ${fcfa(PRIX.suite)}, soit ${fcfa(PRIX.total)}.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ── Le routeur ──────────────────────────────────────────────────────── */
+let vue = 'vente';
+let porteChoisie = 'alibaba';
+const VUES = { vente: vueVente, apres: vueApres, dedans: vueDedans };
+
+function rendre() {
+  document.getElementById('ecran').innerHTML = VUES[vue]();
+  for (const b of document.querySelectorAll('#choix button'))
+    b.setAttribute('aria-pressed', String(b.dataset.vue === vue));
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+document.addEventListener('click', (e) => {
+  const onglet = e.target.closest('#choix button');
+  if (onglet) { vue = onglet.dataset.vue; location.hash = vue; return rendre(); }
+  const aller = e.target.closest('[data-aller]');
+  if (aller) {
+    if (aller.dataset.plan) planChoisi = aller.dataset.plan;
+    vue = aller.dataset.aller; location.hash = vue; return rendre();
+  }
+  const porte = e.target.closest('[data-porte]');
+  if (porte) { porteChoisie = porte.dataset.porte; location.hash = porteChoisie; return rendre(); }
+});
+
+/*
+ * Deux sortes de clés dans le même fragment, et c'est voulu : les trois vues
+ * (#vente, #apres, #dedans) servent à montrer la maquette, les clés de porte
+ * (#alibaba, #facebook, …) sont **les liens des publicités**. Une annonce
+ * pointe sur sa clé, la page s'ouvre déjà sur la bonne promesse, et personne
+ * n'a à choisir quoi que ce soit en arrivant.
+ */
+const VUES_CLES = new Set(['vente', 'apres', 'dedans']);
+const PORTES_CLES = new Set(TOUTES.map((x) => x.cle));
+
+function depuisHash() {
+  const h = location.hash.slice(1);
+  if (VUES_CLES.has(h)) return h;
+  if (PORTES_CLES.has(h)) { porteChoisie = h; return 'vente'; }
+  return 'vente';
+}
+window.addEventListener('hashchange', () => { vue = depuisHash(); rendre(); });
+vue = depuisHash();
+rendre();
+</script>
